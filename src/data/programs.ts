@@ -6,14 +6,15 @@
  * API, estes valores passam a vir de uma tabela atualizável.
  */
 
-export type AirlineId = "gol" | "latam" | "azul";
+export type AirlineId = "gol" | "latam" | "azul" | "other";
 export type ProgramId = "smiles" | "latampass" | "tudoazul";
 export type BankProgramId = "livelo" | "esfera" | "ailos";
 
 export type Airline = {
   id: AirlineId;
   name: string;
-  program: ProgramId;
+  /** null para companhias sem programa mapeado */
+  program: ProgramId | null;
   /** cor da marca, só para o logo-texto */
   color: string;
 };
@@ -22,6 +23,7 @@ export const AIRLINES: Record<AirlineId, Airline> = {
   gol: { id: "gol", name: "GOL", program: "smiles", color: "#F26A21" },
   latam: { id: "latam", name: "LATAM", program: "latampass", color: "#E0004D" },
   azul: { id: "azul", name: "Azul", program: "tudoazul", color: "#1C56A5" },
+  other: { id: "other", name: "Outra cia", program: null, color: "#64748b" },
 };
 
 export type Program = {

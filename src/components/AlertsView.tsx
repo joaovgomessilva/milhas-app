@@ -4,7 +4,7 @@ import { airportByCode } from "@/data/airports";
 import { PROGRAMS } from "@/data/programs";
 import { alertTriggered, checkAlert, useAlerts, type Alert } from "@/lib/alerts-store";
 import { brl, monthLabel, num } from "@/lib/format";
-import { priceProvider } from "@/lib/providers/mock";
+import { priceProvider } from "@/lib/providers";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PromosList } from "./PromosList";

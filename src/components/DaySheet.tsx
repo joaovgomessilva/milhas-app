@@ -2,7 +2,7 @@
 
 import { AIRLINES, PROGRAMS, type ProgramId } from "@/data/programs";
 import { brl, duration, longDate, num } from "@/lib/format";
-import { priceProvider } from "@/lib/providers/mock";
+import { priceProvider } from "@/lib/providers";
 import type { Flight, SearchQuery } from "@/lib/providers/types";
 import { recommend, type Recommendation, type Wallet } from "@/lib/valuation";
 import Link from "next/link";
@@ -96,7 +96,7 @@ export function DaySheet({ q, date, wallet, onClose, onPrev, onNext }: Props) {
                     <button type="button" className="w-full text-left p-3" aria-expanded={expanded} onClick={() => setOpen({ key, id: expanded ? null : f.id })}>
                       <div className="flex items-center justify-between gap-3">
                         <span className="flex items-center gap-2 min-w-0">
-                          <span className="text-[11px] font-bold tracking-wide px-1.5 py-0.5 rounded" style={{ background: AIRLINES[f.airline].color, color: "#fff" }}>{AIRLINES[f.airline].name}</span>
+                          <span className="text-[11px] font-bold tracking-wide px-1.5 py-0.5 rounded" style={{ background: AIRLINES[f.airline].color, color: "#fff" }}>{f.airlineName ?? AIRLINES[f.airline].name}</span>
                           <span className="text-sm text-ink-muted">{f.stops === 0 ? "Direto" : "1 parada"} · {duration(f.durationMin)}</span>
                         </span>
                         {rec && <VerdictBadge v={rec.verdict} />}
@@ -113,6 +113,14 @@ export function DaySheet({ q, date, wallet, onClose, onPrev, onNext }: Props) {
                         </span>
                       </div>
                     </button>
+                    {expanded && !f.miles && (
+                      <div className="px-3 pb-3 fade-in">
+                        <p className="text-xs text-ink-muted">Sem estimativa em milhas para esta companhia.</p>
+                        <div className="mt-2"><Freshness meta={f.meta} compact /></div>
+                        <a href={airlineSearchUrl({ airline: f.airline, from: q.from, to: q.to, date, passengers: q.passengers, cabin: q.cabin, miles: false })} target="_blank" rel="noopener noreferrer" className="btn-primary w-full mt-2 !min-h-[44px] text-sm">Ver em R$ {f.airline === "other" ? "no Google" : `na ${AIRLINES[f.airline].name}`} <ExtIcon /></a>
+                        {f.bookingUrl && <a href={f.bookingUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary w-full mt-2 !min-h-[40px] text-sm">Comprar pela Aviasales por {brl(f.cash)} <ExtIcon /></a>}
+                      </div>
+                    )}
                     {expanded && rec && f.miles && (
                       <div className="px-3 pb-3 fade-in">
                         <div className="rounded-[12px] bg-surface-2 p-3 text-sm">
@@ -131,12 +139,15 @@ export function DaySheet({ q, date, wallet, onClose, onPrev, onNext }: Props) {
                         </div>
                         <div className="grid grid-cols-2 gap-2 mt-2">
                           <a href={airlineSearchUrl({ airline: f.airline, from: q.from, to: q.to, date, passengers: q.passengers, cabin: q.cabin, miles: false })} target="_blank" rel="noopener noreferrer" className="btn-primary !min-h-[44px] text-sm">
-                            Ver em R$ na {AIRLINES[f.airline].name} <ExtIcon />
+                            Ver em R$ {f.airline === "other" ? "no Google" : `na ${AIRLINES[f.airline].name}`} <ExtIcon />
                           </a>
                           <a href={airlineSearchUrl({ airline: f.airline, from: q.from, to: q.to, date, passengers: q.passengers, cabin: q.cabin, miles: true })} target="_blank" rel="noopener noreferrer" className="btn-secondary !min-h-[44px] text-sm">
                             Ver em milhas <ExtIcon />
                           </a>
                         </div>
+                        {f.bookingUrl && (
+                          <a href={f.bookingUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary w-full mt-2 !min-h-[40px] text-sm">Comprar pela Aviasales por {brl(f.cash)} <ExtIcon /></a>
+                        )}
                         <ReportRow f={f} route={`${q.from}-${q.to}`} date={date} reports={reports} />
                       </div>
                     )}
@@ -146,7 +157,7 @@ export function DaySheet({ q, date, wallet, onClose, onPrev, onNext }: Props) {
             </ul>
           )}
 
-          <p className="text-[11px] text-ink-muted">A compra é feita no site da companhia ou do programa. Este app não pede sua senha e não movimenta pontos.</p>
+          <p className="text-[11px] text-ink-muted">Preços em dinheiro vêm do cache de buscas recentes e podem ter mudado. As milhas são estimadas a partir do preço em dinheiro até termos fonte própria. A compra é feita no site da companhia, do programa ou da agência. Este app não pede sua senha e não movimenta pontos.</p>
         </div>
       </div>
     </div>
@@ -196,7 +207,7 @@ function Tip({ rec, flight, savings, passengers }: { rec: Recommendation; flight
       {savings > 0 && (
         <p className="text-sm mt-2 font-medium text-good">Economia estimada: {brl(savings * passengers)} em relação ao voo mais barato em dinheiro{passengers > 1 ? `, para ${passengers} pessoas` : ""}</p>
       )}
-      <p className="text-xs text-ink-muted mt-2">Melhor opção: {AIRLINES[flight.airline].name} às {flight.departure}. {rec.verdict === "pay-cash" && !rec.savings ? <Link href="/carteira" className="text-primary underline">Informe seus saldos</Link> : null}</p>
+      <p className="text-xs text-ink-muted mt-2">Melhor opção: {flight.airlineName ?? AIRLINES[flight.airline].name} às {flight.departure}. {rec.verdict === "pay-cash" && !rec.savings ? <Link href="/carteira" className="text-primary underline">Informe seus saldos</Link> : null}</p>
     </section>
   );
 }

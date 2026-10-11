@@ -2,7 +2,7 @@
 
 import type { CabinId } from "@/data/programs";
 import { brl, compactMiles } from "@/lib/format";
-import { priceProvider } from "@/lib/providers/mock";
+import { priceProvider } from "@/lib/providers";
 import type { RouteInsight } from "@/lib/providers/types";
 import { useEffect, useState } from "react";
 import { Term } from "./Term";
@@ -65,7 +65,7 @@ export function RouteInsightCard({ from, to, cabin, monthMinCash, monthMinMiles,
         </p>
       )}
 
-      <Sparkline history={data.history} />
+      {data.history.length > 1 && <Sparkline history={data.history} />}
 
       {level !== "low" && (
         <button type="button" className="btn-secondary w-full mt-3 !min-h-[40px] text-sm" onClick={onCreateAlert}>Criar alerta e esperar</button>

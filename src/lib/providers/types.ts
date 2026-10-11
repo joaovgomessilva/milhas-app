@@ -26,6 +26,8 @@ export type PriceMeta = {
 
 export type CashFare = {
   airline: AirlineId;
+  /** nome/código quando airline === "other" */
+  airlineName?: string;
   /** total por passageiro, R$ */
   price: number;
 };
@@ -42,6 +44,9 @@ export type MilesFare = {
 export type Flight = {
   id: string;
   airline: AirlineId;
+  airlineName?: string;
+  /** link de compra em agência/parceiro, quando a fonte fornece */
+  bookingUrl?: string;
   departure: string; // HH:mm
   arrival: string; // HH:mm
   durationMin: number;

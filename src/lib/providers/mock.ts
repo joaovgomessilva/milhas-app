@@ -110,7 +110,7 @@ function buildDay(q: SearchQuery, model: RouteModel, date: Date, today: Date): D
     return { airline, price: roundTo(model.baseCash * f * spread, model.international ? 10 : 1) };
   });
   const miles: MilesFare[] = model.airlines.map((airline) => {
-    const program = AIRLINES[airline].program;
+    const program = AIRLINES[airline].program!;
     const c = cash.find((x) => x.airline === airline)!.price;
     // milhas = preço em dinheiro / (R$ por milha). Dias "bons" têm rate alto → menos milhas.
     const rate = milesRatePer1000(program, r);
@@ -124,6 +124,22 @@ function buildDay(q: SearchQuery, model: RouteModel, date: Date, today: Date): D
   const minCash = Math.min(...cash.map((c) => c.price));
   const minMiles = miles.reduce((best, m) => (!best || m.miles < best.miles ? m : best), null as MilesFare | null);
   return { date: iso, minCash, minMiles, cash, miles };
+}
+
+/**
+ * Estimativa de milhas a partir de um preço real em dinheiro.
+ * Usada pelo provider de produção enquanto não há fonte real de milhas.
+ * Determinística por rota/dia/companhia, calibrada pelos valores de referência.
+ */
+export function estimateMilesForCash(from: string, to: string, date: string, cabin: CabinId, airline: Exclude<AirlineId, "other">, cash: number): MilesFare | null {
+  const model = routeModel(from, to);
+  if (!model) return null;
+  const program = AIRLINES[airline].program!;
+  const r = rng(hash(`est-${from}-${to}-${date}-${program}`));
+  // sobre um preço real, variação mais contida que no mock puro: ±20% em torno da referência
+  const rate = PROGRAMS[program].referenceValuePer1000 * (0.85 + r() * 0.4);
+  const taxes = Math.round(model.taxes * CABIN_MULTIPLIER[cabin] * 100) / 100;
+  return { program, airline, miles: roundTo(((cash - taxes) / rate) * 1000, 100), taxes };
 }
 
 export class MockPriceProvider implements PriceProvider {

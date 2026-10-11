@@ -3,7 +3,7 @@
 import { airportByCode } from "@/data/airports";
 import { PROGRAMS, type CabinId, type ProgramId } from "@/data/programs";
 import { brl, compactBrl, compactMiles, monthLabel, shiftMonth } from "@/lib/format";
-import { priceProvider } from "@/lib/providers/mock";
+import { priceProvider } from "@/lib/providers";
 import type { CalendarResult, DayPrice, SearchQuery } from "@/lib/providers/types";
 import { useWallet } from "@/lib/wallet-store";
 import Link from "next/link";
@@ -168,7 +168,7 @@ export function Results() {
         )}
 
         <p className="text-[11px] text-ink-muted mt-3 flex items-center gap-1.5 flex-wrap">
-          <span className="inline-block w-3 h-3 rounded bg-good-soft border border-good/30" aria-hidden /> 20% mais baratos do mês · <span className="text-cash font-medium">R$ por pessoa</span> · <span className="text-miles font-medium">milhas</span> + <Term k="taxas">taxas</Term>
+          <span className="inline-block w-3 h-3 rounded bg-good-soft border border-good/30" aria-hidden /> 20% mais baratos do mês · dias em branco: sem preço recente · <span className="text-cash font-medium">R$ por pessoa</span> · <span className="text-miles font-medium">milhas</span> + <Term k="taxas">taxas</Term>
         </p>
         {meta && <div className="mt-1.5"><Freshness meta={meta} compact /></div>}
       </section>

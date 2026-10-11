@@ -4,7 +4,7 @@ import { airportByCode } from "@/data/airports";
 import { PROGRAMS, type CabinId } from "@/data/programs";
 import { brl, compactMiles, monthLabel, shiftMonth } from "@/lib/format";
 import { useLocalValue } from "@/lib/local-store";
-import { priceProvider } from "@/lib/providers/mock";
+import { priceProvider } from "@/lib/providers";
 import type { ExploreDestination, PriceMeta } from "@/lib/providers/types";
 import { useWallet } from "@/lib/wallet-store";
 import Link from "next/link";
@@ -119,6 +119,9 @@ export function ExploreView() {
         </ol>
       )}
 
+      {data && data.destinations.every((d) => !d.minMiles) && list && list.length > 0 && (
+        <p className="text-xs text-ink-muted">Com preços reais, a estimativa em milhas por destino ainda não está disponível. Abra um destino para ver a estimativa dia a dia.</p>
+      )}
       {data && <Freshness meta={data.meta} compact />}
     </>
   );

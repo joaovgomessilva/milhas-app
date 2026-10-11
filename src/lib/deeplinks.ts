@@ -49,6 +49,9 @@ export function airlineSearchUrl({ airline, from, to, date, passengers, cabin, m
       });
       return `https://b2c.voegol.com.br/compra/busca-parceiros?${p.toString()}`;
     }
+    case "other": {
+      return `https://www.google.com/travel/flights?q=${encodeURIComponent(`voos de ${from} para ${to} em ${d}/${m}/${y} só ida`)}&hl=pt-BR`;
+    }
     case "azul": {
       const p = new URLSearchParams({
         c1: from,
