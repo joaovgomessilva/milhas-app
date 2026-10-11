@@ -20,7 +20,9 @@ type Props = {
 
 export function CreateAlertSheet(p: Props) {
   const { add } = useAlerts();
-  const [flex, setFlex] = useState<"month" | "any">("month");
+  const [flex, setFlex] = useState<"month" | "any" | "window">("month");
+  const [dateFrom, setDateFrom] = useState(`${p.month}-01`);
+  const [dateTo, setDateTo] = useState(`${p.month}-07`);
   const [maxCash, setMaxCash] = useState<number>(p.suggestedCash ? Math.floor(p.suggestedCash * 0.9 / 10) * 10 : 0);
   const [maxMiles, setMaxMiles] = useState<number>(p.suggestedMiles ? Math.floor(p.suggestedMiles * 0.9 / 1000) * 1000 : 0);
   const [done, setDone] = useState(false);
@@ -31,11 +33,12 @@ export function CreateAlertSheet(p: Props) {
     return () => window.removeEventListener("keydown", onKey);
   }, [p]);
 
-  const valid = maxCash > 0 || maxMiles > 0;
+  const windowOk = flex !== "window" || (dateFrom && dateTo && dateFrom <= dateTo);
+  const valid = (maxCash > 0 || maxMiles > 0) && windowOk;
 
   function save() {
     if (!valid) return;
-    add({ from: p.from, to: p.to, month: flex === "any" ? "any" : p.month, passengers: p.passengers, cabin: p.cabin, programs: p.programs, maxCash, maxMiles });
+    add({ from: p.from, to: p.to, month: flex === "any" ? "any" : p.month, passengers: p.passengers, cabin: p.cabin, programs: p.programs, maxCash, maxMiles, ...(flex === "window" ? { dateFrom, dateTo } : {}) });
     setDone(true);
   }
 
@@ -61,11 +64,25 @@ export function CreateAlertSheet(p: Props) {
 
             <div>
               <span className="label">Quando</span>
-              <div className="segmented grid-cols-2" role="group">
-                <button type="button" aria-pressed={flex === "month"} onClick={() => setFlex("month")}>{monthLabel(p.month)}</button>
-                <button type="button" aria-pressed={flex === "any"} onClick={() => setFlex("any")}>Qualquer data</button>
+              <div className="segmented grid-cols-3" role="group">
+                <button type="button" aria-pressed={flex === "month"} onClick={() => setFlex("month")}>{monthLabel(p.month).split(" ")[0]}</button>
+                <button type="button" aria-pressed={flex === "window"} onClick={() => setFlex("window")}>Entre datas</button>
+                <button type="button" aria-pressed={flex === "any"} onClick={() => setFlex("any")}>Qualquer</button>
               </div>
-              <p className="text-xs text-ink-muted mt-1.5">&ldquo;Qualquer data&rdquo; olha os próximos 6 meses inteiros.</p>
+              {flex === "window" ? (
+                <div className="grid grid-cols-2 gap-3 mt-2">
+                  <div>
+                    <label htmlFor="al-from" className="label">De</label>
+                    <input id="al-from" type="date" className="field" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+                  </div>
+                  <div>
+                    <label htmlFor="al-to" className="label">Até</label>
+                    <input id="al-to" type="date" className="field" value={dateTo} min={dateFrom} onChange={(e) => setDateTo(e.target.value)} />
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-ink-muted mt-1.5">{flex === "any" ? "Olha os próximos 6 meses inteiros." : "Olha todos os dias deste mês."}</p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-3">

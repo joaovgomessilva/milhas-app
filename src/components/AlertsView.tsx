@@ -2,7 +2,9 @@
 
 import { airportByCode } from "@/data/airports";
 import { PROGRAMS } from "@/data/programs";
-import { alertTriggered, checkAlert, useAlerts, type Alert } from "@/lib/alerts-store";
+import { alertTriggered, alertWhenLabel, checkAlert, useAlerts, type Alert } from "@/lib/alerts-store";
+import { useRouter, useSearchParams } from "next/navigation";
+import type { CabinId, ProgramId } from "@/data/programs";
 import { brl, monthLabel, num } from "@/lib/format";
 import { priceProvider } from "@/lib/providers";
 import Link from "next/link";
@@ -14,8 +16,27 @@ import { useSyncExternalStore } from "react";
 type Tab = "alerts" | "promos";
 
 export function AlertsView() {
-  const { alerts, loaded, remove, replaceAll } = useAlerts();
+  const { alerts, loaded, remove, replaceAll, add } = useAlerts();
   const [tab, setTab] = useState<Tab>("alerts");
+  const sp = useSearchParams();
+  const router = useRouter();
+
+  // Alerta por link: /alertas?new=1&from=GRU&to=FOR&dateFrom=...&dateTo=...&maxMiles=40000
+  const newKey = sp.get("new") ? sp.toString() : "";
+  useEffect(() => {
+    if (!loaded || !newKey) return;
+    const q = new URLSearchParams(newKey);
+    const from = q.get("from") ?? "", to = q.get("to") ?? "";
+    if (!/^[A-Z]{3}$/.test(from) || !/^[A-Z]{3}$/.test(to)) return;
+    const dateFrom = q.get("dateFrom") ?? undefined, dateTo = q.get("dateTo") ?? undefined;
+    const month = q.get("month") ?? (dateFrom ? dateFrom.slice(0, 7) : "any");
+    const programs = ((q.get("programs") ?? "smiles,latampass,tudoazul").split(",") as ProgramId[]).filter((p) => PROGRAMS[p]);
+    const dup = alerts.some((a) => a.from === from && a.to === to && a.dateFrom === dateFrom && a.dateTo === dateTo && a.month === month);
+    if (!dup) {
+      add({ from, to, month, dateFrom, dateTo, passengers: Math.max(1, Number(q.get("pax") ?? 1) || 1), cabin: (q.get("cabin") as CabinId) || "economy", programs, maxCash: Number(q.get("maxCash") ?? 0) || 0, maxMiles: Number(q.get("maxMiles") ?? 0) || 0 });
+    }
+    router.replace("/alertas");
+  }, [loaded, newKey, alerts, add, router]);
   const [checkedFor, setCheckedFor] = useState<string | null>(null);
   const minute = useSyncExternalStore((cb) => { const id = setInterval(cb, 30000); return () => clearInterval(id); }, () => Math.floor(Date.now() / 60000), () => 0);
 
@@ -78,14 +99,14 @@ function AlertCard({ a, minute, onRemove }: { a: Alert; minute: number; onRemove
   const hit = alertTriggered(a);
   const from = airportByCode(a.from);
   const to = airportByCode(a.to);
-  const url = `/resultados?from=${a.from}&to=${a.to}&month=${a.month === "any" ? (a.current?.cashDate?.slice(0, 7) ?? "") : a.month}&pax=${a.passengers}&cabin=${a.cabin}&budget=${a.maxCash}&programs=${a.programs.join(",")}`;
+  const url = `/resultados?from=${a.from}&to=${a.to}&month=${a.dateFrom ? a.dateFrom.slice(0, 7) : a.month === "any" ? (a.current?.cashDate?.slice(0, 7) ?? "") : a.month}&pax=${a.passengers}&cabin=${a.cabin}&budget=${a.maxCash}&programs=${a.programs.join(",")}`;
   return (
     <li className={`card p-4 ${hit ? "border border-good/40" : ""}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="font-semibold text-ink-strong truncate">{from?.city ?? a.from} → {to?.city ?? a.to}</h3>
           <p className="text-xs text-ink-muted">
-            {a.month === "any" ? "Qualquer data nos próximos 6 meses" : monthLabel(a.month)} · {a.passengers} {a.passengers > 1 ? "pessoas" : "pessoa"} · {a.programs.map((p) => PROGRAMS[p].name).join(", ")}
+            {alertWhenLabel(a, monthLabel)} · {a.passengers} {a.passengers > 1 ? "pessoas" : "pessoa"} · {a.programs.map((p) => PROGRAMS[p].name).join(", ")}
           </p>
         </div>
         {hit && <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-good-soft text-good shrink-0">Bateu!</span>}

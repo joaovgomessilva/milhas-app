@@ -16,6 +16,9 @@ export type Alert = {
   to: string;
   /** "YYYY-MM" para um mês específico ou "any" para os próximos 6 meses */
   month: string | "any";
+  /** janela opcional de datas (inclusive), YYYY-MM-DD. Quando presente, vale sobre `month`. */
+  dateFrom?: string;
+  dateTo?: string;
   passengers: number;
   cabin: CabinId;
   programs: ProgramId[];
@@ -55,6 +58,15 @@ export function useAlerts() {
   };
 }
 
+/** Texto curto de quando o alerta vale. */
+export function alertWhenLabel(a: Alert, monthLabel: (m: string) => string) {
+  if (a.dateFrom && a.dateTo) {
+    const f = (iso: string) => new Date(iso + "T12:00").toLocaleDateString("pt-BR", { day: "numeric", month: "short" });
+    return `${f(a.dateFrom)} a ${f(a.dateTo)}`;
+  }
+  return a.month === "any" ? "Qualquer data nos próximos 6 meses" : monthLabel(a.month);
+}
+
 export function alertTriggered(a: Alert) {
   if (!a.current) return false;
   const cashHit = a.maxCash > 0 && a.current.minCash != null && a.current.minCash <= a.maxCash;
@@ -69,7 +81,12 @@ function currentMonth() {
 
 /** Verifica um alerta contra o provider e devolve a cópia atualizada (não grava). */
 export async function checkAlert(a: Alert, provider: PriceProvider): Promise<Alert> {
-  const months = a.month === "any" ? Array.from({ length: 6 }, (_, i) => shiftMonth(currentMonth(), i)) : [a.month];
+  let months = a.month === "any" ? Array.from({ length: 6 }, (_, i) => shiftMonth(currentMonth(), i)) : [a.month];
+  if (a.dateFrom && a.dateTo) {
+    months = [];
+    let m = a.dateFrom.slice(0, 7);
+    while (m <= a.dateTo.slice(0, 7) && months.length < 12) { months.push(m); m = shiftMonth(m, 1); }
+  }
   let minCash: number | null = null;
   let cashDate: string | undefined;
   let minMiles: number | null = null;
@@ -79,6 +96,8 @@ export async function checkAlert(a: Alert, provider: PriceProvider): Promise<Ale
   for (const month of months) {
     const { days } = await provider.getCalendar({ from: a.from, to: a.to, month, passengers: a.passengers, cabin: a.cabin });
     for (const d of days) {
+      if (a.dateFrom && d.date < a.dateFrom) continue;
+      if (a.dateTo && d.date > a.dateTo) continue;
       if (d.minCash != null && (minCash == null || d.minCash < minCash)) { minCash = d.minCash; cashDate = d.date; }
       const m = d.miles.filter((x) => a.programs.includes(x.program)).sort((x, y) => x.miles - y.miles)[0];
       if (m && (minMiles == null || m.miles < minMiles)) { minMiles = m.miles; minMilesProgram = m.program; milesDate = d.date; }
