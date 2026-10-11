@@ -3,7 +3,7 @@
 import { AIRLINES, PROGRAMS, type ProgramId } from "@/data/programs";
 import { brl, duration, longDate, num } from "@/lib/format";
 import { priceProvider } from "@/lib/providers";
-import type { Flight, SearchQuery } from "@/lib/providers/types";
+import type { DayPrice, Flight, SearchQuery } from "@/lib/providers/types";
 import { recommend, type Recommendation, type Wallet } from "@/lib/valuation";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -15,13 +15,14 @@ import { Term } from "./Term";
 type Props = {
   q: SearchQuery & { programs: ProgramId[] };
   date: string;
+  day?: DayPrice | null;
   wallet: Wallet;
   onClose: () => void;
   onPrev: () => void;
   onNext: () => void;
 };
 
-export function DaySheet({ q, date, wallet, onClose, onPrev, onNext }: Props) {
+export function DaySheet({ q, date, day, wallet, onClose, onPrev, onNext }: Props) {
   const key = JSON.stringify({ q, date });
   const [result, setResult] = useState<{ key: string; flights: Flight[] } | null>(null);
   const flights = result?.key === key ? result.flights : null;
@@ -79,7 +80,23 @@ export function DaySheet({ q, date, wallet, onClose, onPrev, onNext }: Props) {
 
           {flights && best && <Tip rec={best.top.r} flight={best.top.f} savings={best.savings} passengers={q.passengers} />}
 
-          {flights && flights.length === 0 && (
+          {flights && flights.length === 0 && day && day.miles.length > 0 && (
+            <section className="card p-4" aria-label="Milhas observadas">
+              <p className="text-xs font-semibold uppercase tracking-wide text-primary">Sem preço em dinheiro recente</p>
+              <p className="text-sm text-ink mt-1">Ninguém buscou esta data em dinheiro nos últimos dias. Em milhas, temos:</p>
+              <ul className="mt-2 flex flex-col gap-1.5">
+                {day.miles.map((m) => (
+                  <li key={m.program} className="flex items-center justify-between text-sm">
+                    <span>{PROGRAMS[m.program].name} <span className="text-ink-muted">({AIRLINES[PROGRAMS[m.program].airline].name})</span></span>
+                    <span className="text-miles font-semibold">{num(m.miles)} <span className="text-ink-muted font-normal">+ {brl(m.taxes)}</span></span>
+                  </li>
+                ))}
+              </ul>
+              {day.miles[0]?.kind === "observed" && <p className="text-[11px] text-ink-muted mt-2">Visto em {day.miles[0].source}, em {new Date(day.miles[0].seenAt + "T12:00").toLocaleDateString("pt-BR")}.</p>}
+              <a href={airlineSearchUrl({ airline: AIRLINES[PROGRAMS[day.miles[0].program].airline].id, from: q.from, to: q.to, date, passengers: q.passengers, cabin: q.cabin, miles: true })} target="_blank" rel="noopener noreferrer" className="btn-primary w-full mt-3 !min-h-[44px] text-sm">Ver em milhas na {AIRLINES[PROGRAMS[day.miles[0].program].airline].name} <ExtIcon /></a>
+            </section>
+          )}
+          {flights && flights.length === 0 && (!day || day.miles.length === 0) && (
             <div className="card p-6 text-center">
               <h3 className="font-semibold">Sem voos neste dia</h3>
               <p className="text-sm text-ink-muted mt-1">Experimente o dia seguinte ou outro programa.</p>
@@ -106,7 +123,7 @@ export function DaySheet({ q, date, wallet, onClose, onPrev, onNext }: Props) {
                         <span className="text-right">
                           <span className="block text-base font-semibold text-cash">{brl(f.cash)}</span>
                           {f.miles ? (
-                            <span className="block text-sm text-miles font-medium">{num(f.miles.miles)} milhas <span className="text-ink-muted font-normal">+ {brl(f.miles.taxes)}</span></span>
+                            <span className="block text-sm text-miles font-medium">{num(f.miles.miles)} milhas <span className="text-ink-muted font-normal">+ {brl(f.miles.taxes)}{f.miles.kind === "observed" ? " · visto" : " · est."}</span></span>
                           ) : (
                             <span className="block text-xs text-ink-muted">sem emissão em milhas</span>
                           )}

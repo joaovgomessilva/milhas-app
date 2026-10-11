@@ -120,7 +120,7 @@ export function Results() {
             {!filtered && Array.from({ length: 30 }).map((_, i) => <div key={i} className="skeleton aspect-[4/5]" />)}
             {filtered?.map((d) => {
               const dayNum = Number(d.date.slice(-2));
-              const empty = d.minCash == null;
+              const empty = d.minCash == null && d.minMiles == null;
               const overBudget = q.budget > 0 && d.minCash != null && d.minCash > q.budget;
               const cheapCash = d.minCash != null && stats && d.minCash <= stats.cheapCash;
               const cheapMiles = d.minMiles != null && stats && d.minMiles.miles <= stats.cheapMiles;
@@ -131,7 +131,7 @@ export function Results() {
                   type="button"
                   role="gridcell"
                   disabled={empty}
-                  aria-label={empty ? `Dia ${dayNum}, sem preços` : `Dia ${dayNum}: ${brl(d.minCash!)} ou ${d.minMiles ? compactMiles(d.minMiles.miles) + " milhas" : "sem milhas"}`}
+                  aria-label={empty ? `Dia ${dayNum}, sem preços` : `Dia ${dayNum}: ${d.minCash != null ? brl(d.minCash) : "sem preço em dinheiro"} ou ${d.minMiles ? compactMiles(d.minMiles.miles) + " milhas" : "sem milhas"}`}
                   onClick={() => setSelected(d.date)}
                   className={`fade-in aspect-[4/5] rounded-[10px] flex flex-col items-center justify-center gap-0.5 px-0.5 transition-transform active:scale-95
                     ${empty ? "text-ink-muted/40" : overBudget ? "opacity-35" : ""}
@@ -140,7 +140,7 @@ export function Results() {
                 >
                   <span className={`text-[13px] leading-none ${highlight && !overBudget ? "font-semibold text-ink-strong" : "text-ink"}`}>{dayNum}</span>
                   {!empty && view !== "miles" && (
-                    <span className={`text-[10px] leading-tight ${cheapCash ? "text-good font-semibold" : "text-cash"}`}>{compactBrl(d.minCash!)}</span>
+                    <span className={`text-[10px] leading-tight ${cheapCash ? "text-good font-semibold" : "text-cash"}`}>{d.minCash != null ? compactBrl(d.minCash) : "—"}</span>
                   )}
                   {!empty && view !== "cash" && d.minMiles && (
                     <span className={`text-[10px] leading-tight ${cheapMiles ? "text-good font-semibold" : "text-miles"}`}>{compactMiles(d.minMiles.miles)}</span>
@@ -181,7 +181,7 @@ export function Results() {
         />
       )}
       {selected && (
-        <DaySheet q={q} date={selected} wallet={wallet} onClose={() => setSelected(null)} onPrev={() => setSelected(shiftDay(selected, -1))} onNext={() => setSelected(shiftDay(selected, 1))} />
+        <DaySheet q={q} date={selected} day={filtered?.find((d) => d.date === selected) ?? null} wallet={wallet} onClose={() => setSelected(null)} onPrev={() => setSelected(shiftDay(selected, -1))} onNext={() => setSelected(shiftDay(selected, 1))} />
       )}
     </main>
   );

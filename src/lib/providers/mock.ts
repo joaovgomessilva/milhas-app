@@ -139,7 +139,11 @@ export function estimateMilesForCash(from: string, to: string, date: string, cab
   // sobre um preço real, variação mais contida que no mock puro: ±20% em torno da referência
   const rate = PROGRAMS[program].referenceValuePer1000 * (0.85 + r() * 0.4);
   const taxes = Math.round(model.taxes * CABIN_MULTIPLIER[cabin] * 100) / 100;
-  return { program, airline, miles: roundTo(((cash - taxes) / rate) * 1000, 100), taxes };
+  // Calibração com observações reais (Trip Milhas, GRU-FOR, out/2026): em Natal e Ano Novo as
+  // tarifas em milhas sobem mais que as em dinheiro (2x a 2,5x o normal). Aplica 1,5x no período.
+  const mmdd = date.slice(5);
+  const season = (mmdd >= "12-20" || mmdd <= "01-05") ? 1.5 : 1;
+  return { program, airline, miles: roundTo(((cash - taxes) / rate) * 1000 * season, 100), taxes, kind: "estimate" };
 }
 
 export class MockPriceProvider implements PriceProvider {

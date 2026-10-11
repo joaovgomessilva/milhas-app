@@ -39,6 +39,11 @@ export type MilesFare = {
   miles: number;
   /** taxas em R$ por passageiro (embarque etc.) */
   taxes: number;
+  /** "estimate" (derivada do preço em dinheiro) ou "observed" (vista numa fonte pública) */
+  kind?: "estimate" | "observed";
+  /** fonte e data quando observada */
+  source?: string;
+  seenAt?: string;
 };
 
 export type Flight = {
