@@ -47,10 +47,12 @@ export function useLocalValue<T extends object>(key: string, fallback: T): [T, (
 }
 
 /**
- * Dia atual como número inteiro (estável dentro do mesmo dia), seguro para usar durante o render.
+ * Dia atual (no fuso do aparelho) como número inteiro, seguro para usar durante o render.
+ * Mesma escala de `Math.floor(new Date("YYYY-MM-DDT12:00").getTime() / 86400000)`, então a diferença
+ * entre os dois é o número de dias do calendário local (sem virar o dia às 21h no Brasil).
  * No servidor devolve 0 (desconhecido): a UI mostra um placeholder até hidratar.
  */
 export function useTodayIndex() {
-  const day = () => Math.floor(Date.now() / 86400000);
+  const day = () => Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
   return useSyncExternalStore(() => () => {}, day, () => 0);
 }

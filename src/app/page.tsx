@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import { SearchForm } from "@/components/SearchForm";
 import { HowItWorks } from "@/components/HowItWorks";
+import { ExpiryNotice } from "@/components/ExpiryNotice";
+import { BonusRadarCard } from "@/components/BonusRadarCard";
 import Link from "next/link";
 
 export default function HomePage() {
@@ -11,6 +13,7 @@ export default function HomePage() {
         <h1 className="text-[28px] font-semibold mt-1">Para onde você quer ir?</h1>
         <p className="text-ink-muted mt-1">Compare o preço em dinheiro e em milhas dia a dia, e veja quando vale a pena usar seus pontos.</p>
       </header>
+      <ExpiryNotice />
       <HowItWorks />
       <Suspense>
         <SearchForm />
@@ -25,6 +28,7 @@ export default function HomePage() {
         </span>
         <span className="text-ink-muted" aria-hidden>›</span>
       </Link>
+      <BonusRadarCard />
     </main>
   );
 }

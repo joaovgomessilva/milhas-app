@@ -7,6 +7,7 @@ import { useWallet } from "@/lib/wallet-store";
 import { eraseAllLocalData } from "@/lib/privacy";
 import { useState } from "react";
 import { Term } from "./Term";
+import { ExpirationsSection } from "./ExpirationsSection";
 
 export function WalletView() {
   const { wallet, update, loaded } = useWallet();
@@ -38,6 +39,8 @@ export function WalletView() {
           );
         })}
       </Group>
+
+      <ExpirationsSection />
 
       <p className="text-xs text-ink-muted">
         <Term k="referencia">Valor de referência</Term> é quanto 1.000 milhas costumam render. Os saldos ficam só neste aparelho. Na próxima fase, a atualização poderá ser automática, sem guardar a sua senha dos programas.

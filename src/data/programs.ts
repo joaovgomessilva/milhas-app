@@ -99,6 +99,24 @@ export const TRANSFER_BONUSES: TransferBonus[] = [
   { id: "lv-lp-1", from: "livelo", to: "latampass", bonus: 0.3, until: "2026-11-05" },
 ];
 
+/**
+ * Promoções já encerradas (mock). Servem de régua para o veredito do radar:
+ * um bônus só é "bom" se estiver no nível do que esse par costuma pagar.
+ * Na fase 2 vem do mesmo monitoramento das promoções ativas, guardado em banco.
+ */
+export const TRANSFER_BONUS_HISTORY: TransferBonus[] = [
+  { id: "h-lv-sm-1", from: "livelo", to: "smiles", bonus: 1.0, until: "2026-08-31" },
+  { id: "h-lv-sm-2", from: "livelo", to: "smiles", bonus: 0.7, until: "2026-06-15" },
+  { id: "h-lv-sm-3", from: "livelo", to: "smiles", bonus: 0.8, until: "2026-03-20" },
+  { id: "h-es-lp-1", from: "esfera", to: "latampass", bonus: 0.25, until: "2026-09-10" },
+  { id: "h-es-lp-2", from: "esfera", to: "latampass", bonus: 0.3, until: "2026-05-05" },
+  { id: "h-lv-ta-1", from: "livelo", to: "tudoazul", bonus: 1.0, until: "2026-09-25" },
+  { id: "h-lv-ta-2", from: "livelo", to: "tudoazul", bonus: 0.9, until: "2026-04-30" },
+  { id: "h-lv-lp-1", from: "livelo", to: "latampass", bonus: 0.25, until: "2026-07-31" },
+  { id: "h-lv-lp-2", from: "livelo", to: "latampass", bonus: 0.3, until: "2026-02-28" },
+  { id: "h-es-sm-1", from: "esfera", to: "smiles", bonus: 0.8, until: "2026-09-01" },
+];
+
 export const CABINS = [
   { id: "economy", label: "Econômica" },
   { id: "premium", label: "Econômica Premium" },

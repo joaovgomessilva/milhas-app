@@ -25,6 +25,11 @@ export const GLOSSARY = {
     short: "Milhas extras ao transferir pontos do banco.",
     body: "Pontos de banco (Livelo, Esfera) viram milhas quando você transfere para a companhia. De tempos em tempos a companhia dá bônus: com 80% de bônus, 10.000 pontos viram 18.000 milhas. É o jeito mais barato de conseguir milhas, por isso quase sempre vale esperar um bônus.",
   },
+  vencimento: {
+    term: "Vencimento dos pontos",
+    short: "A data em que pontos sem uso somem.",
+    body: "Quase todo programa tem prazo: pontos e milhas vencem depois de um tempo (cada lote tem a sua data, conforme quando foi ganho). A data aparece no extrato do programa como \"pontos a expirar\". Antes de vencer dá para usar numa passagem, trocar por produtos ou, no caso de pontos de banco, transferir para uma companhia aérea, de preferência com bônus.",
+  },
   programa: {
     term: "Programa de milhas",
     short: "Onde as milhas ficam guardadas.",

@@ -10,6 +10,7 @@ import { priceProvider } from "@/lib/providers";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PromosList } from "./PromosList";
+import { ExpiryNotice } from "./ExpiryNotice";
 import { relativeTime } from "./Freshness";
 import { useSyncExternalStore } from "react";
 
@@ -64,6 +65,8 @@ export function AlertsView() {
         </button>
         <button type="button" aria-pressed={tab === "promos"} onClick={() => setTab("promos")}>Promoções de bônus</button>
       </div>
+
+      <ExpiryNotice />
 
       {tab === "promos" && <PromosList />}
 
